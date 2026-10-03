@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Irahni Decors — Admin Portal</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="icon" type="image/png" href="../logo.png">
+  
+</head>
+<body>
+
+  <!-- Minimal Auth Verification State -->
+  <div id="auth-loading" class="loading-state" style="padding: 6rem 1rem; color: var(--text-muted); text-align: center;">
+    <p style="font-family: var(--font-heading); font-size: 1.125rem; color: var(--accent-gold); margin-bottom: 0.5rem;">Irahni Decors</p>
+    <p>Verifying admin authorization...</p>
+  </div>
+
+  <!-- Main Admin Dashboard Container -->
+  <div id="dashboard" class="dashboard-container" style="display: none;">
+    
+    <!-- Top Admin Bar -->
+    <header class="admin-header">
+      <div class="header-left">
+        <img src="../logo.png" alt="Logo" width="32" height="32">
+        <span class="admin-title">IRAHNI DECORS — ADMIN PORTAL</span>
+      </div>
+      <div class="header-right">
+        <span id="user-display" style="font-size: 0.875rem; color: var(--text-secondary); font-family: var(--font-mono);"></span>
+        <button id="btn-logout" class="btn btn-sm btn-outline">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="admin-main">
+      <div class="admin-grid">
+        
+        <!-- Left: Form Controls and Subsections -->
+        <section class="form-section">
+          
+          <!-- Add / Edit Product Form Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3 id="form-title">Add New Product</h3>
+              <button id="btn-cancel-edit" class="btn btn-sm btn-text" hidden>Cancel Edit</button>
+            </div>
+
+            <form id="product-form" class="product-form">
+              <input type="hidden" id="product-id">
+
+              <div class="form-group">
+                <label for="prod-name">Product Name *</label>
+                <input type="text" id="prod-name" placeholder="e.g. The Spitfire Aero 1944" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="prod-category">Product Category *</label>
+                  <select id="prod-category" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-main); border: 1px solid var(--color-border); border-radius: 10px; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9375rem;" required>
+                    <option value="" disabled selected>Select category...</option>
+                    <option value="propeller">Aircraft Propellers</option>
+                    <option value="lamp">Handmade Lamps</option>
+                    <option value="custom">Custom Projects</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="prod-price">Default / Primary Price (₹ INR) *</label>
+                  <input type="number" id="prod-price" placeholder="16000" min="0" step="1" required>
+                </div>
+              </div>
+
+              <div class="form-group" id="prod-sizes-group">
+                <label for="prod-sizes">Sizes / Dimensions</label>
+                <!-- Quick Selection Chips based on Category -->
+                <div id="size-chips-container" class="size-chips-wrapper"></div>
+                <input type="text" id="prod-sizes" placeholder="e.g. 4 Feet, 4.5 Feet, 5 Feet, 5.5 Feet, 6 Feet">
+                <small id="prod-sizes-hint" style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem; display: block;"></small>
+              </div>
+
+              <!-- Size-Specific Pricing Inputs List -->
+              <div class="form-group" id="size-prices-container" style="display: none; background: rgba(197, 168, 128, 0.03); border: 1px solid var(--color-border); border-radius: 12px; padding: 1.125rem; margin-bottom: 1.25rem;">
+                <label style="color: var(--accent-gold); font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: block;">
+                  Size-Specific Pricing (₹ INR) *
+                </label>
+                <small style="color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 0.75rem; display: block;">
+                  Set individual prices for each selected size. When sizes are added or removed, prices update accordingly.
+                </small>
+                <div id="size-prices-list" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="prod-badge">Badge / Edition</label>
+                <input type="text" id="prod-badge" placeholder="e.g. Edition 1 of 12">
+              </div>
+
+              <div class="form-group">
+                <label for="prod-image">Image URL</label>
+                <input type="url" id="prod-image" placeholder="https://example.com/image.jpg">
+              </div>
+
+              <div class="form-group">
+                <label for="prod-image-file">Or Upload Image Files (Select Multiple)</label>
+                <input type="file" id="prod-image-file" multiple accept="image/jpeg,image/png,image/webp,image/jpg" style="padding: 0.5rem 0; background: transparent; border: none;">
+                
+                <!-- Upload Progress & Status -->
+                <div id="upload-progress-container" class="upload-progress-container" hidden style="margin-top: 0.5rem;">
+                  <div id="upload-status-text" style="font-size: 0.8125rem; color: var(--accent-gold); margin-bottom: 0.35rem; display: flex; justify-content: space-between;">
+                    <span id="upload-status-label">Uploading...</span>
+                    <span id="upload-status-percent">0%</span>
+                  </div>
+                  <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                    <div id="upload-progress-bar" style="width: 0%; height: 100%; background: var(--accent-gold); transition: width 0.2s ease;"></div>
+                  </div>
+                </div>
+                <div id="upload-error-text" style="color: #ef4444; font-size: 0.8125rem; margin-top: 0.35rem;" hidden></div>
+
+                <!-- Single Primary Preview Container -->
+                <div id="image-preview-container" class="image-preview-container" hidden>
+                  <img id="image-preview" src="" alt="Preview">
+                </div>
+
+                <!-- Multi-Image Gallery Previews -->
+                <div id="gallery-preview-container" class="gallery-preview-container" hidden style="margin-top: 0.75rem;">
+                  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 0.5rem; font-family: var(--font-mono);">Uploaded Images Gallery</div>
+                  <div id="gallery-preview-grid" class="gallery-preview-grid"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="prod-desc">Product Description *</label>
+                <textarea id="prod-desc" rows="3" placeholder="Describe the authentic components and light throw specifications..." required></textarea>
+              </div>
+
+              <!-- Dynamic Custom Project Fields Group -->
+              <div id="custom-project-fields" style="border: 1px solid var(--color-border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: rgba(197, 168, 128, 0.03);" hidden>
+                <h4 style="font-size: 0.875rem; color: #c5a880; margin-bottom: 1rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em;">Custom Project Details</h4>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="prod-project-type">Project Type</label>
+                    <select id="prod-project-type" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-main); border: 1px solid var(--color-border); border-radius: 10px; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9375rem;">
+                      <option value="Furniture">Furniture</option>
+                      <option value="Lighting">Lighting</option>
+                      <option value="Décor">Décor</option>
+                      <option value="Woodwork">Woodwork</option>
+                      <option value="Custom Design" selected>Custom Design</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="prod-dimensions">Dimensions</label>
+                    <input type="text" id="prod-dimensions" placeholder="e.g. 180cm x 90cm x 76cm (L x W x H)">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="prod-materials">Materials Used</label>
+                    <input type="text" id="prod-materials" placeholder="e.g. Solid Black Walnut, Brass, Aircraft Duralumin">
+                  </div>
+                  <div class="form-group">
+                    <label for="prod-finish">Finish / Colour</label>
+                    <input type="text" id="prod-finish" placeholder="e.g. Hand-rubbed Oil Finish / Matte Black">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="prod-availability">Availability Status</label>
+                    <select id="prod-availability" style="width: 100%; padding: 0.75rem 1rem; background: var(--bg-main); border: 1px solid var(--color-border); border-radius: 10px; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9375rem;">
+                      <option value="Custom Order &#8212; Handcrafted to Request" selected>Handcrafted to Request</option>
+                      <option value="Built / Ready for Customization">Ready for Customization</option>
+                      <option value="In Stock Studio Model">Studio Model In Stock</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="prod-custom-details">Customization Details</label>
+                  <textarea id="prod-custom-details" rows="2" placeholder="Describe custom options, joinery, dimensions, and customer options..."></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="prod-gallery-urls">Additional Gallery Image URLs (one per line or comma separated)</label>
+                  <textarea id="prod-gallery-urls" rows="2" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"></textarea>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="prod-specs">Product Specifications (multiline details)</label>
+                <textarea id="prod-specs" rows="3" placeholder="e.g.&#10;Material: Polished Duralumin&#10;Lighting: Warm 2700K LED&#10;Base: Smoked Oak Base"></textarea>
+              </div>
+
+              <div class="form-row" style="margin-bottom: 1.5rem;">
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" id="prod-featured" style="width: auto; margin: 0; cursor: pointer;">
+                  <label for="prod-featured" style="margin-bottom: 0; cursor: pointer;">Feature Product</label>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" id="prod-hidden" style="width: auto; margin: 0; cursor: pointer;">
+                  <label for="prod-hidden" style="margin-bottom: 0; cursor: pointer;">Hide Product</label>
+                </div>
+              </div>
+
+              <button type="submit" id="btn-submit-form" class="btn btn-primary btn-block">
+                Add Product to Inventory
+              </button>
+            </form>
+          </div>
+
+          <!-- Partner Management Panel (Admin Only) -->
+          <div id="partner-section" class="panel" style="margin-top: 2rem;" hidden>
+            <div class="panel-header">
+              <h3>Partner Management</h3>
+            </div>
+            <form id="partner-form">
+              <div class="form-group">
+                <label for="partner-username">Partner Username *</label>
+                <input type="text" id="partner-username" placeholder="e.g. partner1" required autocomplete="username">
+              </div>
+              <div class="form-group">
+                <label for="partner-password">Partner Password *</label>
+                <input type="password" id="partner-password" placeholder="e.g. pass123" required autocomplete="new-password">
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Invite Partner</button>
+            </form>
+            
+            <div style="margin-top: 1.5rem;">
+              <h4 style="font-size: 0.875rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Active Partners</h4>
+              <div id="partner-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="loading-state" style="padding: 1rem 0;">Loading partners...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Website Settings Panel (Admin Only) -->
+          <div id="settings-section" class="panel" style="margin-top: 2rem;" hidden>
+            <div class="panel-header">
+              <h3>Website Settings</h3>
+            </div>
+            <form id="settings-form">
+              <div class="form-group">
+                <label for="setting-storename">Storefront Name</label>
+                <input type="text" id="setting-storename" value="Irahni Decors" required>
+              </div>
+              <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                <input type="checkbox" id="setting-maintenance" style="width: auto; margin: 0; cursor: pointer;">
+                <label for="setting-maintenance" style="margin-bottom: 0; cursor: pointer;">Maintenance Mode</label>
+              </div>
+              <button type="submit" id="btn-submit-settings" class="btn btn-outline btn-block">Save Settings</button>
+            </form>
+          </div>
+
+        </section>
+
+        <!-- Right: Real-time Products List & Reviews Moderation -->
+        <section class="list-section">
+          <!-- Live Inventory Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Live Inventory Catalog</h3>
+              <span id="product-count" class="badge-count">0 items</span>
+            </div>
+
+            <div id="admin-product-list" class="admin-product-list">
+              <div class="loading-state">Loading inventory from Firestore...</div>
+            </div>
+          </div>
+
+          <!-- Customer Reviews Moderation Panel -->
+          <div id="reviews-panel" class="panel" style="margin-top: 2rem;">
+            <div class="panel-header">
+              <div>
+                <h3 style="margin-bottom: 0.25rem;">Customer Reviews Moderation</h3>
+                <small style="color: var(--text-secondary); font-size: 0.75rem;">Approve, hide or delete submitted customer reviews</small>
+              </div>
+              <span id="review-count" class="badge-count">0 reviews</span>
+            </div>
+
+            <!-- Review Moderation Filter Tabs -->
+            <div class="review-filter-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+              <button type="button" class="btn-review-filter active" data-review-filter="all">All Reviews</button>
+              <button type="button" class="btn-review-filter" data-review-filter="pending">Pending Approval</button>
+              <button type="button" class="btn-review-filter" data-review-filter="approved">Approved</button>
+              <button type="button" class="btn-review-filter" data-review-filter="hidden">Hidden</button>
+            </div>
+
+            <div id="admin-review-list" class="admin-review-list">
+              <div class="loading-state">Loading customer reviews...</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Admin JS Module -->
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
